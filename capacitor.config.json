@@ -1,0 +1,14 @@
+{
+  "appId": "com.investmind.ai",
+  "appName": "InvestMind AI",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

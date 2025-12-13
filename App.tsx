@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Download, Bot, BrainCircuit } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Download, Bot, BrainCircuit, X, Smartphone, Code2 } from 'lucide-react';
 import { analyzeAsset, getMarketOverview } from './services/geminiService';
 import { SearchBar } from './components/SearchBar';
 import { MarketCard } from './components/MarketCard';
@@ -14,6 +14,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [marketSummary, setMarketSummary] = useState<string>('Carregando dados do mercado global...');
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState(false);
 
   // Load initial market overview and setup PWA install prompt
   useEffect(() => {
@@ -36,11 +37,14 @@ export default function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setInstallPrompt(null);
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setInstallPrompt(null);
+      }
+    } else {
+      setShowInstallModal(true);
     }
   };
 
@@ -67,21 +71,20 @@ export default function App() {
             <div className="bg-primary-600 p-2 rounded-lg">
               <TrendingUp className="text-white w-6 h-6" />
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 hidden sm:block">
               InvestMind
             </span>
           </div>
           <div className="flex items-center gap-4">
-             {installPrompt && (
-               <button 
-                 onClick={handleInstallClick}
-                 className="hidden sm:flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors border border-slate-600"
-               >
-                 <Download size={14} />
-                 Instalar App
-               </button>
-             )}
-             <div className="flex gap-2 bg-dark-800 p-1 rounded-lg border border-dark-700 overflow-x-auto">
+             <button 
+               onClick={handleInstallClick}
+               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors border border-slate-600"
+             >
+               <Download size={14} />
+               <span className="hidden sm:inline">Baixar App</span>
+             </button>
+             
+             <div className="flex gap-2 bg-dark-800 p-1 rounded-lg border border-dark-700 overflow-x-auto max-w-[200px] sm:max-w-none no-scrollbar">
                <button 
                 onClick={() => setCurrentView(ViewState.DASHBOARD)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.DASHBOARD ? 'bg-dark-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
@@ -92,13 +95,13 @@ export default function App() {
                 onClick={() => setCurrentView(ViewState.BOT)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.BOT ? 'bg-primary-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
                >
-                 <Bot size={14} /> Trading Bot
+                 <Bot size={14} /> <span className="hidden sm:inline">Bot</span>
                </button>
                <button 
                 onClick={() => setCurrentView(ViewState.ADVISOR)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.ADVISOR ? 'bg-emerald-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
                >
-                 <BrainCircuit size={14} /> Consultor IA
+                 <BrainCircuit size={14} /> <span className="hidden sm:inline">Consultor</span>
                </button>
              </div>
           </div>
@@ -119,16 +122,6 @@ export default function App() {
                 Analise ações, FIIs e criptomoedas em segundos. Obtenha cotações em tempo real e recomendações baseadas em dados fundamentais.
               </p>
               <SearchBar onSearch={handleSearch} isLoading={isLoading} />
-              
-              {installPrompt && (
-                <button 
-                  onClick={handleInstallClick}
-                  className="mt-4 sm:hidden inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary-500/20"
-                >
-                  <Download size={16} />
-                  Instalar Aplicativo
-                </button>
-              )}
             </section>
 
             <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -207,6 +200,55 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Install Modal */}
+      {showInstallModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-dark-800 rounded-2xl border border-dark-700 shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="p-6 border-b border-dark-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-white">Instalar Aplicativo</h3>
+              <button onClick={() => setShowInstallModal(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="bg-primary-900/20 border border-primary-500/20 rounded-lg p-4">
+                <h4 className="flex items-center gap-2 font-bold text-primary-400 mb-2">
+                  <Smartphone size={18} /> Versão Rápida (PWA)
+                </h4>
+                <p className="text-sm text-slate-300 mb-2">
+                  Instale agora sem baixar arquivos pesados. Funciona offline e é super rápido.
+                </p>
+                <ol className="text-xs text-slate-400 list-decimal ml-4 space-y-1">
+                  <li>No seu navegador, toque em <strong>Menu</strong> (três pontos ou compartilhar).</li>
+                  <li>Selecione <strong>"Adicionar à Tela Inicial"</strong> ou "Instalar Aplicativo".</li>
+                </ol>
+              </div>
+
+              <div className="bg-dark-900/50 border border-dark-700 rounded-lg p-4">
+                <h4 className="flex items-center gap-2 font-bold text-emerald-400 mb-2">
+                  <Code2 size={18} /> Versão Nativa (APK)
+                </h4>
+                <p className="text-sm text-slate-300 mb-2">
+                  Para desenvolvedores ou uso avançado. O projeto já está configurado.
+                </p>
+                <div className="bg-black rounded p-2 font-mono text-xs text-slate-400 overflow-x-auto">
+                  npm install<br/>
+                  npm run apk:build
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-dark-900 text-center">
+              <button 
+                onClick={() => setShowInstallModal(false)}
+                className="text-slate-400 hover:text-white text-sm font-medium"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
