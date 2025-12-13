@@ -93,7 +93,7 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
 export const getMarketOverview = async (): Promise<string> => {
   try {
     const prompt = `
-      Resuma o sentimento geral do mercado financeiro hoje (Bovespa, S&P 500, Nasdaq, Bitcoin) em um parágrafo curto e direto em Português.
+      Resuma o sentimento geral do mercado financeiro hoje (focando em Bovespa, Euro Stoxx 50, S&P 500, Nasdaq, Bitcoin) em um parágrafo curto e direto em Português.
     `;
     
     const response = await ai.models.generateContent({
@@ -107,5 +107,39 @@ export const getMarketOverview = async (): Promise<string> => {
     return response.text || "Mercado sem dados no momento.";
   } catch (error) {
     return "Não foi possível obter o resumo do mercado.";
+  }
+};
+
+export const generateInvestmentPlan = async (monthly: number, target: number): Promise<string> => {
+  try {
+    const prompt = `
+      Atue como um Consultor Financeiro Pessoal Expert.
+      
+      DADOS DO USUÁRIO:
+      - Investimento Mensal Disponível: € ${monthly}
+      - Objetivo Financeiro (Meta): € ${target}
+      
+      TAREFA:
+      1. Calcule estimativa de TEMPO para atingir a meta considerando uma taxa de retorno média anual realista (considere o cenário econômico Europeu e Global).
+      2. Crie uma ESTRATÉGIA de alocação de ativos (ex: % Renda Fixa/Bonds, % Ações/ETFs, % Cripto).
+      3. Sugira 3 a 5 ATIVOS ESPECÍFICOS (Tickers reais como ETFs Europeus (UCITS), Ações Europeias ou Americanas, Títulos Governamentais) que se encaixam nessa estratégia hoje.
+      4. Dê um conselho final sobre disciplina e risco.
+
+      FORMATO:
+      Retorne a resposta formatada em Markdown, usando tópicos, negrito para destaque e tabelas se necessário. Seja direto e prático.
+    `;
+
+    const response = await ai.models.generateContent({
+      model: MODEL_NAME,
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }], // Use search to get current interest rates (Selic)
+      },
+    });
+
+    return response.text || "Não foi possível gerar o plano no momento.";
+  } catch (error) {
+    console.error("Investment Plan Error:", error);
+    return "Ocorreu um erro ao gerar seu plano. Tente novamente.";
   }
 };

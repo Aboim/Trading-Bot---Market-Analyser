@@ -39,5 +39,6 @@ export interface Portfolio {
 
 export enum ViewState {
   DASHBOARD = 'DASHBOARD',
-  BOT = 'BOT'
+  BOT = 'BOT',
+  ADVISOR = 'ADVISOR'
 }

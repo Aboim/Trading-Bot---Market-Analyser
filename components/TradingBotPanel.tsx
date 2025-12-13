@@ -62,7 +62,7 @@ export const TradingBotPanel: React.FC<TradingBotPanelProps> = ({ initialBalance
             total: totalCost
           };
           newPortfolio.history.unshift(trade);
-          addLog(`ORDEM EXECUTADA: Compra de ${quantity}x ${symbol} a $${currentPrice.toFixed(2)}`);
+          addLog(`ORDEM EXECUTADA: Compra de ${quantity}x ${symbol} a €${currentPrice.toFixed(2)}`);
         }
       } 
       // LOGIC: SELL
@@ -83,7 +83,7 @@ export const TradingBotPanel: React.FC<TradingBotPanelProps> = ({ initialBalance
             total: totalValue
           };
           newPortfolio.history.unshift(trade);
-          addLog(`ORDEM EXECUTADA: Venda de ${currentQty}x ${symbol} a $${currentPrice.toFixed(2)}`);
+          addLog(`ORDEM EXECUTADA: Venda de ${currentQty}x ${symbol} a €${currentPrice.toFixed(2)}`);
         } else {
           addLog(`SINAL DE VENDA: ${symbol}, mas não há posição na carteira.`);
         }
@@ -166,12 +166,12 @@ export const TradingBotPanel: React.FC<TradingBotPanelProps> = ({ initialBalance
           <div className="space-y-4">
             <div>
               <p className="text-slate-400 text-sm">Saldo Disponível</p>
-              <p className="text-3xl font-mono text-white">${portfolio.balance.toFixed(2)}</p>
+              <p className="text-3xl font-mono text-white">€{portfolio.balance.toFixed(2)}</p>
             </div>
             <div>
               <p className="text-slate-400 text-sm">Lucro/Prejuízo (P&L)</p>
               <p className={`text-xl font-mono ${profitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {profitLoss >= 0 ? '+' : ''}{profitLoss.toFixed(2)}
+                {profitLoss >= 0 ? '+' : ''}€{profitLoss.toFixed(2)}
               </p>
             </div>
           </div>
@@ -266,8 +266,8 @@ export const TradingBotPanel: React.FC<TradingBotPanelProps> = ({ initialBalance
                         </span>
                       </td>
                       <td className="py-3 font-medium text-white">{trade.symbol}</td>
-                      <td className="py-3 text-right text-slate-300">${trade.price.toFixed(2)}</td>
-                      <td className="py-3 text-right font-medium text-slate-200">${trade.total.toFixed(2)}</td>
+                      <td className="py-3 text-right text-slate-300">€{trade.price.toFixed(2)}</td>
+                      <td className="py-3 text-right font-medium text-slate-200">€{trade.total.toFixed(2)}</td>
                     </tr>
                   ))
                 )}

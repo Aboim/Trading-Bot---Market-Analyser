@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Download, Bot } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Download, Bot, BrainCircuit } from 'lucide-react';
 import { analyzeAsset, getMarketOverview } from './services/geminiService';
 import { SearchBar } from './components/SearchBar';
 import { MarketCard } from './components/MarketCard';
 import { SimulatedChart } from './components/SimulatedChart';
 import { TradingBotPanel } from './components/TradingBotPanel';
+import { AdvisorPanel } from './components/AdvisorPanel';
 import { AIAnalysis, ViewState } from './types';
 
 export default function App() {
@@ -80,18 +81,24 @@ export default function App() {
                  Instalar App
                </button>
              )}
-             <div className="flex gap-2 bg-dark-800 p-1 rounded-lg border border-dark-700">
+             <div className="flex gap-2 bg-dark-800 p-1 rounded-lg border border-dark-700 overflow-x-auto">
                <button 
                 onClick={() => setCurrentView(ViewState.DASHBOARD)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentView === ViewState.DASHBOARD ? 'bg-dark-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.DASHBOARD ? 'bg-dark-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
                >
                  Analisar
                </button>
                <button 
                 onClick={() => setCurrentView(ViewState.BOT)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${currentView === ViewState.BOT ? 'bg-primary-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.BOT ? 'bg-primary-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
                >
                  <Bot size={14} /> Trading Bot
+               </button>
+               <button 
+                onClick={() => setCurrentView(ViewState.ADVISOR)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${currentView === ViewState.ADVISOR ? 'bg-emerald-600 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+               >
+                 <BrainCircuit size={14} /> Consultor IA
                </button>
              </div>
           </div>
@@ -183,6 +190,19 @@ export default function App() {
               </p>
             </div>
             <TradingBotPanel />
+          </div>
+        )}
+
+        {/* VIEW: ADVISOR (NEW) */}
+        {currentView === ViewState.ADVISOR && (
+          <div className="animate-in fade-in zoom-in-95 duration-500">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-white mb-2">Consultor Financeiro Pessoal</h1>
+              <p className="text-slate-400">
+                Crie um plano sob medida. Informe quanto você pode investir e onde quer chegar, e a IA traçará a rota para sua liberdade financeira.
+              </p>
+            </div>
+            <AdvisorPanel />
           </div>
         )}
 
