@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Download, Bot, BrainCircuit, X, Smartphone, Code2 } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Bot, BrainCircuit, X, Smartphone, Code2 } from 'lucide-react';
 import { analyzeAsset, getMarketOverview } from './services/geminiService';
 import { SearchBar } from './components/SearchBar';
 import { MarketCard } from './components/MarketCard';
@@ -76,13 +76,6 @@ export default function App() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-             <button 
-               onClick={handleInstallClick}
-               className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors border border-slate-600"
-             >
-               <Download size={14} />
-               <span className="hidden sm:inline">Baixar App</span>
-             </button>
              
              <div className="flex gap-2 bg-dark-800 p-1 rounded-lg border border-dark-700 overflow-x-auto max-w-[200px] sm:max-w-none no-scrollbar">
                <button 

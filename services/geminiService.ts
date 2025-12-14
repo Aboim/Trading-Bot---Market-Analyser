@@ -1,11 +1,45 @@
 import { GoogleGenAI } from "@google/genai";
 import { AIAnalysis } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Safe initialization
+const apiKey = process.env.API_KEY || '';
+let ai: GoogleGenAI | null = null;
+
+if (apiKey) {
+  try {
+    ai = new GoogleGenAI({ apiKey });
+  } catch (e) {
+    console.warn("Falha ao inicializar Gemini Client", e);
+  }
+}
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
+// Fallback Mock Data Generator
+const generateMockAnalysis = (symbol: string): AIAnalysis => {
+  const isBuy = Math.random() > 0.4;
+  return {
+    symbol: symbol,
+    currentPrice: 100 + Math.random() * 50,
+    summary: "Modo Simulação (API Key ausente ou erro de rede). O ativo apresenta padrões técnicos baseados em histórico simulado.",
+    recommendation: isBuy ? 'COMPRA' : 'MANTER',
+    riskLevel: isBuy ? 'MÉDIO' : 'BAIXO',
+    keyPoints: [
+      "Dados simulados localmente",
+      "Configure uma API Key válida para dados reais",
+      "Tendência projetada baseada em algoritmo aleatório"
+    ],
+    groundingUrls: []
+  };
+};
+
 export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
+  // Se não houver chave ou cliente, retorna mock imediato
+  if (!ai || !apiKey) {
+    console.log("Usando dados simulados (Sem API Key)");
+    return new Promise(resolve => setTimeout(() => resolve(generateMockAnalysis(symbol)), 1000));
+  }
+
   try {
     const prompt = `
       Atue como um analista financeiro sênior e um algoritmo de trading de alta frequência.
@@ -33,7 +67,6 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        // 2.5 flash follows instructions well, manual parse is safer for mixed content
       },
     });
 
@@ -45,7 +78,6 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
       .filter((c: any) => c.web)
       .map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
 
-    // Clean markdown if present
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     let parsed: any;
@@ -53,21 +85,10 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
       parsed = JSON.parse(cleanText);
     } catch (e) {
       console.error("Failed to parse JSON from AI", text);
-      // Fallback for demo if AI fails to return strict JSON
-      return {
-        symbol: symbol,
-        currentPrice: 0,
-        summary: "Erro na leitura dos dados de mercado.",
-        recommendation: 'MANTER',
-        riskLevel: 'ALTO',
-        keyPoints: ["Falha de conexão com IA"],
-        groundingUrls: []
-      };
+      return generateMockAnalysis(symbol);
     }
 
-    // Sanity check for price, sometimes LLM returns 0 or null if not found
     if (!parsed.currentPrice || typeof parsed.currentPrice !== 'number') {
-      // Generate a semi-realistic price based on hash of symbol for stability in demo if search fails
       parsed.currentPrice = 100 + (Math.random() * 10);
     }
 
@@ -78,19 +99,14 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
 
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
-    return {
-      symbol: symbol,
-      currentPrice: 0,
-      summary: "Erro crítico no serviço.",
-      recommendation: 'MANTER',
-      riskLevel: 'ALTO',
-      keyPoints: ["Erro API"],
-      groundingUrls: []
-    };
+    // Retorna mock em caso de erro (ex: quota exceeded, network error)
+    return generateMockAnalysis(symbol);
   }
 };
 
 export const getMarketOverview = async (): Promise<string> => {
+  if (!ai || !apiKey) return "Modo Offline: Mercado simulado está estável.";
+
   try {
     const prompt = `
       Resuma o sentimento geral do mercado financeiro hoje (focando em Bovespa, Euro Stoxx 50, S&P 500, Nasdaq, Bitcoin) em um parágrafo curto e direto em Português.
@@ -111,6 +127,8 @@ export const getMarketOverview = async (): Promise<string> => {
 };
 
 export const generateInvestmentPlan = async (monthly: number, target: number): Promise<string> => {
+  if (!ai || !apiKey) return "### Plano Simulado (Sem IA)\n\n**Estratégia Conservadora**\n- 40% Renda Fixa\n- 40% ETFs Globais\n- 20% Fundos Imobiliários\n\nConfigure a API Key para um plano personalizado.";
+
   try {
     const prompt = `
       Atue como um Consultor Financeiro Pessoal Expert.
@@ -120,20 +138,20 @@ export const generateInvestmentPlan = async (monthly: number, target: number): P
       - Objetivo Financeiro (Meta): € ${target}
       
       TAREFA:
-      1. Calcule estimativa de TEMPO para atingir a meta considerando uma taxa de retorno média anual realista (considere o cenário econômico Europeu e Global).
-      2. Crie uma ESTRATÉGIA de alocação de ativos (ex: % Renda Fixa/Bonds, % Ações/ETFs, % Cripto).
-      3. Sugira 3 a 5 ATIVOS ESPECÍFICOS (Tickers reais como ETFs Europeus (UCITS), Ações Europeias ou Americanas, Títulos Governamentais) que se encaixam nessa estratégia hoje.
+      1. Calcule estimativa de TEMPO para atingir a meta considerando uma taxa de retorno média anual realista.
+      2. Crie uma ESTRATÉGIA de alocação de ativos.
+      3. Sugira 3 a 5 ATIVOS ESPECÍFICOS.
       4. Dê um conselho final sobre disciplina e risco.
 
       FORMATO:
-      Retorne a resposta formatada em Markdown, usando tópicos, negrito para destaque e tabelas se necessário. Seja direto e prático.
+      Retorne a resposta formatada em Markdown.
     `;
 
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: prompt,
       config: {
-        tools: [{ googleSearch: {} }], // Use search to get current interest rates (Selic)
+        tools: [{ googleSearch: {} }],
       },
     });
 

@@ -10,6 +10,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
+      // Polyfill para evitar erros de 'process is not defined' em execução local simples
+      if (typeof process === 'undefined') {
+        window.process = { env: { API_KEY: '' } };
+      }
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -60,25 +65,13 @@
     "recharts": "https://esm.sh/recharts@^3.5.1",
     "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
     "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
-    "react-markdown": "https://esm.sh/react-markdown@^10.1.0"
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0",
+    "crypto-js": "https://esm.sh/crypto-js@4.2.0"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch((error) => {
-              console.log('ServiceWorker registration failed: ', error);
-            });
-        });
-      }
-    </script>
   </body>
 </html>

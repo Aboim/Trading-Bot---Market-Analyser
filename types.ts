@@ -23,9 +23,9 @@ export interface ChartPoint {
 
 export interface Trade {
   id: string;
-  symbol: string;
-  type: 'BUY' | 'SELL';
-  price: number;
+  symbol: string; // Can be 'BRL' or 'EUR' for cash transactions
+  type: 'BUY' | 'SELL' | 'DEPOSIT' | 'WITHDRAW';
+  price: number; // Price of asset or amount of transaction
   quantity: number;
   timestamp: Date;
   total: number;
