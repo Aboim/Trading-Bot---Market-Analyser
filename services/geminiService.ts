@@ -1,17 +1,43 @@
 import { GoogleGenAI } from "@google/genai";
 import { AIAnalysis } from "../types";
 
-// Safe initialization
-const apiKey = process.env.API_KEY || '';
+// Inicialização segura com suporte a LocalStorage para ambientes sem .env
+let apiKey = process.env.API_KEY || '';
 let ai: GoogleGenAI | null = null;
 
-if (apiKey) {
-  try {
-    ai = new GoogleGenAI({ apiKey });
-  } catch (e) {
-    console.warn("Falha ao inicializar Gemini Client", e);
+// Tenta recuperar do storage local se estiver no navegador e não houver env var
+if (!apiKey && typeof window !== 'undefined') {
+  const storedKey = localStorage.getItem('INVESTMIND_GEMINI_KEY');
+  if (storedKey) {
+    apiKey = storedKey;
   }
 }
+
+const initializeAI = () => {
+  if (apiKey) {
+    try {
+      ai = new GoogleGenAI({ apiKey });
+    } catch (e) {
+      console.warn("Falha ao inicializar Gemini Client", e);
+      ai = null;
+    }
+  }
+};
+
+// Inicializa na carga do módulo
+initializeAI();
+
+// Função para definir a chave via UI
+export const setGeminiApiKey = (key: string) => {
+  apiKey = key;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('INVESTMIND_GEMINI_KEY', key);
+  }
+  initializeAI();
+};
+
+// Verifica se existe uma chave configurada
+export const hasGeminiApiKey = () => !!ai;
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
@@ -21,7 +47,7 @@ const generateMockAnalysis = (symbol: string): AIAnalysis => {
   return {
     symbol: symbol,
     currentPrice: 100 + Math.random() * 50,
-    summary: "Modo Simulação (API Key ausente ou erro de rede). O ativo apresenta padrões técnicos baseados em histórico simulado.",
+    summary: "Modo Simulação (Sem API Key Configurada). Para análises reais, clique no ícone de engrenagem e configure sua Gemini API Key.",
     recommendation: isBuy ? 'COMPRA' : 'MANTER',
     riskLevel: isBuy ? 'MÉDIO' : 'BAIXO',
     keyPoints: [
@@ -105,7 +131,7 @@ export const analyzeAsset = async (symbol: string): Promise<AIAnalysis> => {
 };
 
 export const getMarketOverview = async (): Promise<string> => {
-  if (!ai || !apiKey) return "Modo Offline: Mercado simulado está estável.";
+  if (!ai || !apiKey) return "Modo Offline: Configure sua API Key para ver o resumo do mercado.";
 
   try {
     const prompt = `
@@ -127,7 +153,7 @@ export const getMarketOverview = async (): Promise<string> => {
 };
 
 export const generateInvestmentPlan = async (monthly: number, target: number): Promise<string> => {
-  if (!ai || !apiKey) return "### Plano Simulado (Sem IA)\n\n**Estratégia Conservadora**\n- 40% Renda Fixa\n- 40% ETFs Globais\n- 20% Fundos Imobiliários\n\nConfigure a API Key para um plano personalizado.";
+  if (!ai || !apiKey) return "### Plano Simulado (Sem IA)\n\n**Estratégia Conservadora**\n- 40% Renda Fixa\n- 40% ETFs Globais\n- 20% Fundos Imobiliários";
 
   try {
     const prompt = `

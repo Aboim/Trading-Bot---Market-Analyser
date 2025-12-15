@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Target, Calculator, PieChart, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
-import { generateInvestmentPlan } from '../services/geminiService';
-import ReactMarkdown from 'react-markdown'; // Note: In a real environment, you'd need to install this or parse manually. I will do simple rendering.
+import { Target, Calculator, PieChart, CheckCircle2, Loader2, Sparkles, Settings } from 'lucide-react';
+import { generateInvestmentPlan, hasGeminiApiKey } from '../services/geminiService';
+import ReactMarkdown from 'react-markdown'; 
 
-export const AdvisorPanel: React.FC = () => {
+interface AdvisorPanelProps {
+  onOpenSettings: () => void;
+}
+
+export const AdvisorPanel: React.FC<AdvisorPanelProps> = ({ onOpenSettings }) => {
   const [monthly, setMonthly] = useState<string>('');
   const [target, setTarget] = useState<string>('');
   const [plan, setPlan] = useState<string | null>(null);
@@ -18,6 +22,8 @@ export const AdvisorPanel: React.FC = () => {
     setPlan(result);
     setLoading(false);
   };
+
+  const isOffline = !hasGeminiApiKey();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -125,6 +131,20 @@ export const AdvisorPanel: React.FC = () => {
                 return <p key={i} className="text-slate-300 leading-relaxed mb-2">{line.replace(/\*\*/g, '')}</p>;
               })}
             </div>
+
+            {isOffline && (
+                <div className="mt-8 bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-amber-200">
+                        <span className="font-bold block sm:inline mb-1 sm:mb-0">⚠️ Modo Simulação:</span> Para receber um plano personalizado com IA real, configure sua chave de API.
+                    </div>
+                    <button 
+                        onClick={onOpenSettings}
+                        className="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-colors whitespace-nowrap shadow-lg shadow-amber-900/20"
+                    >
+                        <Settings size={16} /> Configurar API Key
+                    </button>
+                </div>
+            )}
 
             <div className="mt-8 pt-6 border-t border-dark-700 flex justify-end">
               <button 

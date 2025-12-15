@@ -795,7 +795,7 @@ export const TradingBotPanel: React.FC<TradingBotPanelProps> = ({ initialBalance
                 (qty as number) > 0 && (
                   <li key={symbol} className="flex justify-between items-center text-sm p-2 bg-dark-900/50 rounded border border-dark-700/50">
                     <span className="font-bold text-white">{symbol}</span>
-                    <span className="text-primary-400 font-mono">{qty.toFixed(4)} un.</span>
+                    <span className="text-primary-400 font-mono">{(qty as number).toFixed(4)} un.</span>
                   </li>
                 )
               ))}

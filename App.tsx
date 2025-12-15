@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Bot, BrainCircuit, X, Smartphone, Code2 } from 'lucide-react';
-import { analyzeAsset, getMarketOverview } from './services/geminiService';
+import { LayoutDashboard, TrendingUp, DollarSign, LineChart, Bot, BrainCircuit, X, Smartphone, Code2, Settings, Key, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { analyzeAsset, getMarketOverview, hasGeminiApiKey, setGeminiApiKey } from './services/geminiService';
 import { SearchBar } from './components/SearchBar';
 import { MarketCard } from './components/MarketCard';
 import { SimulatedChart } from './components/SimulatedChart';
@@ -15,14 +15,23 @@ export default function App() {
   const [marketSummary, setMarketSummary] = useState<string>('Carregando dados do mercado global...');
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [showInstallModal, setShowInstallModal] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState('');
 
-  // Load initial market overview and setup PWA install prompt
+  // Load initial market overview and check API Key status
   useEffect(() => {
-    const fetchOverview = async () => {
-      const summary = await getMarketOverview();
-      setMarketSummary(summary);
-    };
-    fetchOverview();
+    // Check if we have an API key. If not, prompt user.
+    if (!hasGeminiApiKey()) {
+       // Optional: Auto-open modal only if desired, or just show a warning banner.
+       // Let's rely on the user clicking the settings icon or seeing the "Simulated Mode" message.
+       setMarketSummary("Modo Offline: Configure sua API Key para ver dados reais.");
+    } else {
+       const fetchOverview = async () => {
+         const summary = await getMarketOverview();
+         setMarketSummary(summary);
+       };
+       fetchOverview();
+    }
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
@@ -36,15 +45,14 @@ export default function App() {
     };
   }, []);
 
-  const handleInstallClick = async () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setInstallPrompt(null);
-      }
-    } else {
-      setShowInstallModal(true);
+  const handleSaveApiKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (apiKeyInput.trim()) {
+      setGeminiApiKey(apiKeyInput.trim());
+      setShowApiKeyModal(false);
+      // Refresh market summary
+      getMarketOverview().then(setMarketSummary);
+      alert("Chave API salva com sucesso! O aplicativo agora usará dados reais.");
     }
   };
 
@@ -97,6 +105,15 @@ export default function App() {
                  <BrainCircuit size={14} /> <span className="hidden sm:inline">Consultor</span>
                </button>
              </div>
+
+             {/* API Settings Button */}
+             <button 
+               onClick={() => setShowApiKeyModal(true)}
+               className={`p-2 rounded-lg transition-all ${hasGeminiApiKey() ? 'text-slate-400 hover:text-white hover:bg-dark-800' : 'text-amber-400 bg-amber-500/10 animate-pulse'}`}
+               title="Configurar API Key"
+             >
+               <Settings size={20} />
+             </button>
           </div>
         </div>
       </nav>
@@ -188,11 +205,68 @@ export default function App() {
                 Crie um plano sob medida. Informe quanto você pode investir e onde quer chegar, e a IA traçará a rota para sua liberdade financeira.
               </p>
             </div>
-            <AdvisorPanel />
+            <AdvisorPanel onOpenSettings={() => setShowApiKeyModal(true)} />
           </div>
         )}
 
       </main>
+
+      {/* API Key Modal */}
+      {showApiKeyModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-dark-800 rounded-2xl border border-dark-700 shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95">
+             <div className="p-6 border-b border-dark-700 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                   <Key className="text-primary-500" /> Configurar API Key
+                </h3>
+                <button onClick={() => setShowApiKeyModal(false)} className="text-slate-400 hover:text-white">
+                  <X size={24} />
+                </button>
+             </div>
+             <form onSubmit={handleSaveApiKey} className="p-6 space-y-4">
+                <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg text-sm text-blue-300">
+                   <p className="flex items-start gap-2">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      Para executar o código fora do ambiente original, você precisa fornecer sua própria Google Gemini API Key.
+                   </p>
+                </div>
+
+                <div>
+                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">Google Gemini API Key</label>
+                   <input 
+                      type="password" 
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      placeholder="Cole sua chave aqui..."
+                      className="w-full bg-dark-900 border border-dark-700 rounded-lg py-3 px-4 text-white text-sm focus:border-primary-500 outline-none font-mono"
+                   />
+                   <p className="text-xs text-slate-500 mt-2">
+                      Sua chave será salva apenas no navegador (LocalStorage).
+                      <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-primary-400 hover:underline ml-1">
+                         Obter chave no Google AI Studio
+                      </a>
+                   </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                   <button 
+                     type="button"
+                     onClick={() => setShowApiKeyModal(false)}
+                     className="flex-1 bg-dark-700 hover:bg-dark-600 text-slate-300 font-medium py-3 rounded-lg transition-colors"
+                   >
+                     Cancelar
+                   </button>
+                   <button 
+                     type="submit"
+                     className="flex-1 bg-primary-600 hover:bg-primary-500 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                   >
+                     <CheckCircle2 size={18} /> Salvar Chave
+                   </button>
+                </div>
+             </form>
+          </div>
+        </div>
+      )}
 
       {/* Install Modal */}
       {showInstallModal && (
